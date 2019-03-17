@@ -1,0 +1,41 @@
+简单工厂
+    在《Head First 设计模式》中引入“披萨店”来说明简单工厂
+    在PizzaStore中有一个orderPizza方法，定义如下
+        Pizza orderPizza(String type) {
+            Pizza pizza;
+            //一个if语句，用type区分应该实例化那么具体的披萨类（通过new）
+            pizza.prepare();
+            pizza.bake();
+            pizza.cut();
+            pizza.box();
+            return pizza;
+        }
+    上述的方法，如果在type值改变或去掉了某些type值后，就需要每次打开orderPizza来修改；
+    针对接口编程，可以隔离掉以后系统可能发生的一大堆改变，需要“对修改关闭”。
+
+    现在建立一个简单工厂，如下
+    public class SimplePizzaFactory{ 
+        public Pizza createPizza(String type) {
+            //将上述的if语句移至这里
+        }
+    }
+    然后PizzaStore通过SimplePizzaFactory来获得Pizza
+
+    1.上述方式虽然看着只是将代码转义了位置，但是SimplePizzaFactory也可以用在“菜单”上，从而获取具体披萨的原料，价格等信息。
+    所以在需要改变时，只要改变SimplePizzaFactory即可，在所有用到的地方都会随之改变(菜单，订单等)
+    2.SimplePizzaFactory.createPizza可以定义为静态方法，这样就不需要创建SimplePizzaFactory的实例，但无法用继承来改变Factory的行为(静态方法无多态)
+
+简单工厂和抽象工厂
+    上述SimplePizzaFactory.createPizza如果是一个实例方法，那么需要在PizzaStore类中引用SimplePizzaFactory的实例，那么和抽象工厂就及其类似了！
+    如果让SimplePizzaFactory实现PizzaFactory的接口，那么完全可以把SimplePizzaFactory当成是一个及其简单的抽象工厂实现，只是此时这个工厂只生产披萨，而不是一个对象族。
+
+简单工厂和工厂方法
+        两者类似，但用法不同。虽然每个ConcreteCreator看起来都像一个SimplePizzaFactory，但ConcreteCreator继承自Creator，实际创建的对象是由ConcreteCreator
+    负责的；而在简单工厂中，实际生成对象这一动作是委托给了简单工厂。
+        简单工厂可以将对象的创建封装起来，单其不具备工厂方法的弹性，其无法在运行时变更产品。
+
+工厂方法和抽象工厂(参见《Head First 设计模式》P158-P159)
+    1.利用工厂方法创建对象，需要扩展一个类，并覆盖它的工厂方法。该模式通过子类来创建对象，这样使得客户代码只需知道所使用的抽象类型即可，从而从具体类型中解耦。
+    2.抽象工厂提供一个用来创建一个产品家族的抽象类型，该类型的子类定义了产品被生成的方法。该模式必须先实例化具体的工厂，然后将它传入一个针对抽象类型所写的代码中，
+    从而使客户从所使用的实际具体产品解耦。
+    3.工厂方法使用继承，而抽象工厂使用组合

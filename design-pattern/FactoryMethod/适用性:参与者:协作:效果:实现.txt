@@ -1,0 +1,71 @@
+适用性
+    1.当一个类不知道它所必须创建的对象的类的时候
+    2.当一个类希望它的子类来指定它所创建的对象的时候
+    3.当类将创建对象的职责委托给多个帮助子类中的某一个，并且希望将哪一个帮助子类是代理者这一信息局部化的时候
+
+参与者 -- 结合类图
+    Product - 定义工厂方法所创建的对象的接口
+    ConcreteProduct - 实现Product
+    Creator - 声明工厂方法，该方法返回一个Product类型的对象。它也可以定义一个缺省实现
+    ConcreteCreator - 重写工厂方法以创建一个具体的Product对象
+
+协作
+    Creator依赖于它的子类来定义工厂方法，从而返回一个适当的ConcreteCreator实例
+
+效果
+    工厂方法使得用户代码不绑定与特定应用有关的类，用户只处理Product接口
+    缺点：Product每增加一个子类，就需要扩展对应的Creator子类；如果Creator不必需时，需要用户处理这种继承的其他方法
+    1.为子类提供挂钩（hook）-- 该挂钩可能有默认的实现
+    2.连接平行的类层次(当一个类将它的职责委托给一个独立的类时，就产生了平行类层次)
+      -- 都有抽象类，且抽象类都有许多具体的子类，每个子类都有自己特定的实现（《Head First设计模式》P132）
+
+实现
+    1.两种情况：a.Creator是抽象的，不提供工厂方法的实现 b.Creator是个具体类，并且为工厂方法提供缺省实现
+        方式a因为没有合理的缺省实现，可以避免不得不实例化不可预见类的问题(可以理解为“面向实现编程”);
+        方式b主要是因为灵活性才使用工厂方法(为了子类可以改变实际被创建的对象的类)
+    2.参数化工厂方法
+        通过为工厂方法传入一个标识符，从而实例化特定的ConcreteCreator -- 结合“效果的缺点”
+        重定义一个参数化的工厂方法可以简单而有选择的扩展或改变一个Creator生产的产品：1.可以加入新的标识符；2将已有标识符关联到不同产品
+            这里可以有如下实现：Creator提供缺省实现，而子类在重写时，可以只关心特定的标识符（实例化独特的产品），
+            对剩下的标识符不关心，则可以在重写的实现的末尾调用父类实现
+
+    3.特定语言的变化和问题
+        a.SmallTalk的实现方式与下面4的第二种方式类似，将被创建的类存储为Creator的一个类变量(实例域)
+        b.由于Java的方法默认且只有动态绑定（可见核心技术卷），从而可以在构造器中调用工厂方法（而C++中不能有类似的调用）
+
+    4.使用模板(泛型)避免创建子类-效果中提到，它可能仅为了创建合适的Product对象而迫使扩展出Creator的子类
+        在JAVA中可以用两种方式
+            public class Creator<P extends Product> {
+                private P product;
+                public Creator(P p) {
+                    this.product = p;
+                }
+                public void setProduct(P p) {
+                    this.product = p;
+                }
+                public Product create() {
+                    //使用原型
+                }
+            }
+        或
+            public class Creator{
+                private Class<? extends Product> productClass;
+                public Creator(Class<? extends Product> productClass) {
+                    this.productClass = productClass;
+                }
+                public void setProduct(Class<? extends Product> productClass) {
+                    this.productClass = productClass;
+                }
+                public Product create() {
+                    return productClass.newIntance();
+                }
+            }
+
+    5.命名约定 - 使用好的命名约定来表明正在使用工厂方法：如doMakeClass，其中Class是Product类
+
+《Head First设计模式》
+    1.如果只有一个ConcreteCreator实现，用工厂方法有何有点？
+        尽管只有一个具体创建者，但其依旧有用，因为它帮助我们将产品的“实现”从“使用”中解耦。如果增加产品或改变产品的实现，Creator并不会受影响。
+    2.工厂方法和创建者是否总是抽象的？
+        可以定义默认的工厂方法来生成欧谢具体的产品。这一点在上述实现中也有所提到。
+    3.是否是“参数化工厂方法”都是有效的（工厂方法一般只生产一种对象）；在使用“参数化工厂方法”时可以使用语言的特性，如传入枚举等，避免用字符串或整型时造成不必要的错误。
