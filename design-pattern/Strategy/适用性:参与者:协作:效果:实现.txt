@@ -1,0 +1,51 @@
+适用性
+    1.许多相关的类仅仅行为有异。”策略“提供了一种用多个行为中的一个行为来配置一个类的方法
+    2.需要使用一个算法的不同的变体。
+    3.算法使用客户不应该知道的数据。可使用策略模式以避免暴露复杂的、与算法相关的数据结构
+    4.一个类定义了多种行为，并且这些行为在这个类的操作以多个条件语句的形式出现。将相关的条件分支移入他们各自的Strategy类中以代替这些条件语句
+
+参与者 -- 结合类图
+    Strategy - 定义所有支持的算法的公共接口。Context使用这个接口来调用某ConcreteStrategy定义的算法
+    ConcreteStrategy - 以Strategy接口实现某具体算法
+    Context - 用一个ConcreteStrategy对象来配置；维护一个对Strategy对象的引用；可定义一个接口来让Strategy访问它的数据
+        前两点就是说，用一个实例域strategy来维持一个对concreteStrategy的引用
+
+协作
+    1.Strategy和Context相互作用以实现选定的算法。当算法被调用时，Context可以将算法所需要的所有数据都传递给该Strategy。或者，Context可以将自身作为一个参数
+    传递给Strategy，从而可以让Strategy在需要时回调Context
+    2.Context将它的客户请求转发给它的Strategy。客户通常创建并传递一个ConcreteStrategy对象给Context；这样客户仅与Context。通常有一系列的ConcreteStrategy
+    可供客户从中选择
+
+效果
+    1.相关算法系列 - Strategy类层次为Context定义了一系列的可供重用的算法或行为。继承有助于析取出这些算法中的公共功能
+    2.一个替代继承的方法 - 可以避免使用生成Context子类的方式来支持多种算法。使用继承不能动态改变算法，得到的是一堆仅是算法或行为有所差异的子类。
+        将算法封装入Strategy可以独立于Context，使算法易于理解、切换和扩展
+    3.消除一些条件语句
+        可以将条件语句块中的内容封装成Strategy类层次，但是具体什么时候使用具体的ConcreteStrategy仍旧需要用条件语句确定
+    4.实现的选择 - 客户可以根据不同时间/空间权衡取舍来选择相同行为的不同实现
+    5.缺点：客户必须了解不同的Strategy实现，会向客户暴露具体实现，因此仅当这些不同行为变体与客户相关时，才需要使用Strategy
+    6.缺点：Strategy与Context之间的通信开销 - 有些简单ConcreteStrategy可能不需要使用Context中的任何信息，所以有时会创建和初始化一些永远不会用到的参数，此时可以
+        让Strategy和Context更紧密的耦合（实现中的第一点内容）
+    7.缺点：增加了对象的数量 - 可以将Strategy实现为可供Context共享的无需状态的对象来减少这一开销。状态由Context维护，并且每次对Strategy对象的请求都将状态传递进去。
+        共享的Strategy不应在各次调用之间维护状态（参见Flyweight模式）
+
+实现
+    1.定义Context和Strategy接口 - Strategy和Context接口必须使得ConcreteStrategy能够有效的访问它所需要的Context中任何数据。
+        a.Context将数据以参数形式发送给Strategy - 两者可以解耦，但有时可能会传递一些不用数据(如简单的ConcreteStrategy可能不需要任何数据)
+        b.将Context自身以参数形式传递给Strategy，该Strategy显式向Context请求数据；直接在Strategy中维持一个Context的引用
+            两者都可以使得Strategy请求到所需的数据，但要求Context为数据定义更为精细的接口(因为数据应该被封装)，且Strategy和Context更加紧密的耦合
+    2.使用模板(泛型)
+        在Java中可以将Context定义成”public class Context<T extends Strategy> {...  private T strategy; ... //后续调用strategy的算法}“
+        如此，那么在Context实例化时可以绑定一个策略，如”new Context<ConcreteStrategy>()“
+        **注意**
+            a.上传的类定义中仍旧可以定义”public void setStragety(T strategy)“来动态改变策略
+            b.和Context不使用泛型，没有什么实际性的变化（此时是直接使用继承来设置实例域strategy）
+            *************************************************************************
+                c.C++中模板的用法与实现与Java泛型不同，具体细节有待验证，书中提到在两个条件满足时使用C++模板:1)可以在编译期选择Strategy; 2)不需要在运行时改变
+            *************************************************************************
+    3.使Strategy是可选的 - 在Context不使用Strategy时仍旧具有意义，那么Context中可以有缺省实现，
+        在请求某个Strategy时先判断其是否存在，有则使用，无则使用缺省实现；此时客户可以不关心Strategy对象，除非默认不满足需要
+
+** 注意 **
+    Strategy的接口必须经仔细的设计，已支持子类可能实现的所有算法，因为要避免修改Strategy中被请求的接口(要修改它现有的ConcreteStrategy子类)。
+    一般来说，Strategy和Context接口决定了该模式能在多大程度上达到既定目的。
